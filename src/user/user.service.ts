@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { sign } from 'jsonwebtoken';
 import { compare } from 'bcrypt';
 import { Repository } from 'typeorm';
+import { UpdateUserDto } from '@/user/dto/updateUser.dto';
 
 @Injectable()
 export class UserService {
@@ -40,6 +41,13 @@ export class UserService {
     delete user.password;
 
     return user;
+  }
+
+  async updateUser(userId: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findById(userId);
+    Object.assign(user, updateUserDto); // assign the values of update dto to user variable
+
+    return await this.userRepository.save(user);
   }
 
   async findById(id: number): Promise<UserEntity> {
