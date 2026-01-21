@@ -1,6 +1,6 @@
-import { ArticleEntity } from '@/article/article.entity';
 import { ArticleService } from '@/article/article.service';
 import { CreateArticleDto } from '@/article/dto/createArticle.dto';
+import { IArticleResponse } from '@/article/types/articleResponse.interface';
 import { User } from '@/user/decorators/user.decorator';
 import { AuthGuard } from '@/user/guards/auth.guard';
 import { UserEntity } from '@/user/user.entity';
@@ -13,7 +13,8 @@ export class ArticleController {
   @Post()
   @UsePipes(new ValidationPipe())
   @UseGuards(AuthGuard)
-  async createArticle(@User() user: UserEntity, @Body('article') createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
-    return await this.articleService.createArticle(user, createArticleDto);
+  async createArticle(@User() user: UserEntity, @Body('article') createArticleDto: CreateArticleDto): Promise<IArticleResponse> {
+    const newArticle = await this.articleService.createArticle(user, createArticleDto);
+    return this.articleService.generateArticleResponse(newArticle);
   }
 }
