@@ -120,6 +120,36 @@ export class ArticleService {
     return { articles, articlesCount };
   }
 
+  async addToFavoriteArticle(currentUserId: number, slug: string): Promise<IArticleResponse> {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: currentUserId
+      },
+      relations: ['favorites']
+    });
+
+    if (!user) {
+      throw new HttpException(
+        `User with ID ${currentUserId} not found`,
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+
+
+    const currentArticle = await this.findBySlug(slug);
+
+    const isNotFavorite = !user?.favorites.find((article) => article.slug === currentArticle.slug);
+    if(isNotFavorite) {
+      currentArticle.favoritesCount++;
+      user?.favorites.push(currentArticle);
+      await this.articleRepository.save(currentArticle);
+      await this.userRepository.save(user);
+    }
+
+    return this.generateArticleResponse(currentArticle);
+  }
+
   generateSlug(title: string): string {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
 
