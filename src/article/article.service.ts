@@ -7,12 +7,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository } from 'typeorm';
 import slugify from 'slugify';
 import { UpdateArticleDto } from '@/article/dto/updateArticle.dto';
+import { IArticlesResponse } from '@/article/types/articlesResponse.interface';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
+
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>
   ) {}
 
   async createArticle(user: UserEntity, createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
@@ -73,6 +77,47 @@ export class ArticleService {
     }
 
     return article;
+  }
+
+  async findAll(query: any): Promise<IArticlesResponse>{
+    const queryBuilder = this.articleRepository.createQueryBuilder('articles').leftJoinAndSelect('articles.author', 'author');
+
+    if(query.tag) {
+      queryBuilder.andWhere('articles.tagList LIKE :tag', {
+        tag: `%${query.tag}`
+      });
+    }
+
+    if(query.author) {
+      const author = await this.userRepository.findOne({
+        where: {
+          username: query.author
+        }
+      });
+
+      if(author) {
+        queryBuilder.andWhere('articles.authorId = :id', {
+          id: author?.id
+        });
+      } else {
+        return { articles: [], articlesCount: 0 };
+      }
+    }
+
+    if(query.limit) {
+      queryBuilder.limit(query.limit);
+    }
+
+    if(query.offset) {
+      queryBuilder.offset(query.limit);
+    }
+
+    queryBuilder.orderBy('articles.created_at', 'DESC');
+
+    const articles = await queryBuilder.getMany();
+    const articlesCount = await queryBuilder.getCount();
+
+    return { articles, articlesCount };
   }
 
   generateSlug(title: string): string {

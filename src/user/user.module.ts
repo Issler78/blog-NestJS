@@ -14,7 +14,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [TypeOrmModule.forFeature([UserEntity])],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService]
+  exports: [UserService, TypeOrmModule]
 })
 export class UserModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
