@@ -4,7 +4,7 @@ import { IArticleResponse } from '@/article/types/articleResponse.interface';
 import { User } from '@/user/decorators/user.decorator';
 import { AuthGuard } from '@/user/guards/auth.guard';
 import { UserEntity } from '@/user/user.entity';
-import { Body, Controller, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 
 @Controller('articles')
 export class ArticleController {
@@ -16,5 +16,11 @@ export class ArticleController {
   async createArticle(@User() user: UserEntity, @Body('article') createArticleDto: CreateArticleDto): Promise<IArticleResponse> {
     const newArticle = await this.articleService.createArticle(user, createArticleDto);
     return this.articleService.generateArticleResponse(newArticle);
+  }
+
+  @Get(':slug')
+  async getArticle(@Param('slug') slug: string): Promise<IArticleResponse> {
+    const article = await this.articleService.getSingleArticle(slug);
+    return this.articleService.generateArticleResponse(article);
   }
 }
