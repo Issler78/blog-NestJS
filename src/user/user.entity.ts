@@ -14,7 +14,7 @@ import { ArticleEntity } from '../article/article.entity';
 @Entity({ name: 'users' })
 export class UserEntity {
   @PrimaryGeneratedColumn('increment')
-  id: Number;
+  id: number;
 
   @Column()
   username: string;
