@@ -9,8 +9,8 @@ export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Get(':username')
-  async getProfile(@Param('username') profileUsername: string): Promise<IProfileResponse> {
-    const profile = await this.profileService.getProfile(profileUsername);
+  async getProfile(@User('id') currentUserId: number, @Param('username') profileUsername: string): Promise<IProfileResponse> {
+    const profile = await this.profileService.getProfile(currentUserId, profileUsername);
 
     return this.profileService.generateProfileResponse(profile);
   }
