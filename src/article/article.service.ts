@@ -8,6 +8,7 @@ import { DeleteResult, Repository } from 'typeorm';
 import slugify from 'slugify';
 import { UpdateArticleDto } from '@/article/dto/updateArticle.dto';
 import { IArticlesResponse } from '@/article/types/articlesResponse.interface';
+import { FollowEntity } from '@/profile/follow.entity';
 
 @Injectable()
 export class ArticleService {
@@ -16,7 +17,10 @@ export class ArticleService {
     private readonly articleRepository: Repository<ArticleEntity>,
 
     @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>
+    private readonly userRepository: Repository<UserEntity>,
+
+    @InjectRepository(FollowEntity)
+    private readonly followRepository: Repository<FollowEntity>
   ) {}
 
   async createArticle(user: UserEntity, createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
@@ -154,6 +158,40 @@ export class ArticleService {
     });
 
     return { articles: articlesWithFavorited, articlesCount };
+  }
+
+  async getFeed(currentUserId: number, query: any): Promise<IArticlesResponse> {
+    const follows = await this.followRepository.find({
+      where: {
+        followerId: currentUserId
+      }
+    });
+
+    const followingIds = follows.map((user) => user.followingId);
+
+    if(!follows.length) {
+      return { articles: [], articlesCount: 0 };
+    }
+
+
+
+    const queryBuilder = this.articleRepository.createQueryBuilder('articles').leftJoinAndSelect('articles.author', 'author');
+    queryBuilder.andWhere('articles.authorId IN (:...followingIds)', { followingIds });
+
+    const articlesCount = await queryBuilder.getCount();
+    const articles = await queryBuilder.getMany();
+
+
+    
+    if(query.limit) {
+      queryBuilder.limit(query.limit);
+    }
+
+    if(query.offset) {
+      queryBuilder.offset(query.offset);
+    }
+ 
+    return { articles, articlesCount };
   }
 
   async addToFavoriteArticle(currentUserId: number, slug: string): Promise<ArticleEntity> {
