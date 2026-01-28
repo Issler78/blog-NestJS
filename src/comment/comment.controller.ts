@@ -6,6 +6,7 @@ import { UserEntity } from '@/user/user.entity';
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Post,
   UseGuards,
@@ -23,5 +24,11 @@ export class CommentController {
   async createComment(@Param('slug') currentArticleSlug: string, @User() currentUser: UserEntity, @Body('comment') createCommentDto: createCommentDto) {
     const newComment = await this.commentService.createComment(currentArticleSlug, currentUser, createCommentDto);
     return this.commentService.generateCommentResponse(newComment, currentUser.id);
+  }
+
+  @Delete(':slug/comments/:id')
+  @UseGuards(AuthGuard)
+  async deleteComment(@User('id') currentUserId: number, @Param('id') commentId: number){
+    return await this.commentService.deleteComment(currentUserId, commentId);
   }
 }

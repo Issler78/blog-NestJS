@@ -7,7 +7,7 @@ import { ProfileService } from '@/profile/profile.service';
 import { UserEntity } from '@/user/user.entity';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
 export class CommentService {
@@ -45,6 +45,24 @@ export class CommentService {
     const profile = await this.profileService.getProfile(currentUser.id, currentUser.username);
 
     return { ...newComment, author: profile };
+  }
+
+  async deleteComment(currentUserId: number, commentId: number): Promise<DeleteResult> {
+    const comment = await this.commentRepository.findOne({
+      where: {
+        id: commentId
+      }
+    });
+
+    if(!comment) {
+      throw new HttpException('Comment not found', HttpStatus.NOT_FOUND);
+    }
+
+    if(comment.author.id !== currentUserId) {
+      throw new HttpException('You are not an author', HttpStatus.FORBIDDEN);
+    }
+
+    return this.commentRepository.delete({ id: comment.id });
   }
 
   async generateCommentResponse(comment: CommentType, currentUserId: number): Promise<ICommentResponse> {
