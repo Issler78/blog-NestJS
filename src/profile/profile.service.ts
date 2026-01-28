@@ -97,9 +97,13 @@ export class ProfileService {
   }
 
   generateProfileResponse(profile: ProfileType): IProfileResponse {
-    delete profile?.password;
-    delete profile?.email;
-
-    return { profile };
+    return { 
+      profile: {
+        username: profile.username,
+        bio: profile.bio,
+        image: profile.image,
+        following: profile.following
+      }
+    };
   }
 }
