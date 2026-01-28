@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ArticleEntity } from '../article/article.entity';
+import { CommentEntity } from '../comment/comment.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -37,6 +38,9 @@ export class UserEntity {
 
   @OneToMany(() => ArticleEntity, (article) => article.author)
   articles: ArticleEntity[]
+
+  @OneToMany(() => CommentEntity, (comment) => comment.author)
+  comments: CommentEntity[]; 
 
   @BeforeInsert()
   @BeforeUpdate()

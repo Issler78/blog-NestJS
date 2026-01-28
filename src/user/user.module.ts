@@ -1,3 +1,4 @@
+import { CommentEntity } from '@/comment/comment.entity';
 import { AuthMiddleware } from '@/user/middlewares/auth.middleware';
 import { UserController } from '@/user/user.controller';
 import { UserEntity } from '@/user/user.entity';
@@ -11,7 +12,7 @@ import {
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity])],
+  imports: [TypeOrmModule.forFeature([UserEntity, CommentEntity])],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService, TypeOrmModule]
