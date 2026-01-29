@@ -4,7 +4,7 @@ import { IProfileResponse } from '@/profile/types/profileResponse.interface';
 import { UserEntity } from '@/user/user.entity';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 
 @Injectable()
@@ -41,6 +41,40 @@ export class ProfileService {
     }
 
     return { ...profile, following: isFollowed };
+  }
+
+  async getProfilesByUsernames(currentUserId: number, usernames: string[]): Promise<Map<string, ProfileType>> {
+    const users = await this.userRepository.find({
+      where: {
+        username: In(usernames)
+      }
+    });
+
+
+    const follows = currentUserId ? 
+    await this.followRepository.find({
+      where: {
+        followerId: currentUserId,
+        followingId: In(users.map(user => user.id))
+      }
+    }) 
+    : [];
+
+    const followingIds = new Set( follows.map(follow => follow.followingId) );
+    
+
+    const profiles = new Map<string, ProfileType>();
+
+    for(const user of users) {
+      profiles.set(user.username, {
+        username: user.username,
+        bio: user.bio,
+        image: user.image,
+        following: followingIds.has(user.id)
+      });
+    }
+
+    return profiles;
   }
 
   async followProfile(currentUserId: number, followingUsername: string): Promise<ProfileType> {
