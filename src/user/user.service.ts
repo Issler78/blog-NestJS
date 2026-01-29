@@ -8,6 +8,7 @@ import { sign } from 'jsonwebtoken';
 import { compare } from 'bcrypt';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from '@/user/dto/updateUser.dto';
+import { UserType } from '@/user/types/user.type';
 
 @Injectable()
 export class UserService {
@@ -67,7 +68,7 @@ export class UserService {
     return user;
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<IUserResponse> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     const newUser = new UserEntity(); // create an instance (empty) of the class User Entity (model)
 
     Object.assign(newUser, createUserDto); // assign values of create user dto to new user variable
@@ -91,8 +92,7 @@ export class UserService {
       );
     }
 
-    const savedUser = await this.userRepository.save(newUser);
-    return this.generateUserResponse(savedUser);
+    return await this.userRepository.save(newUser);
   }
 
   generateToken(user: UserEntity): string {
@@ -109,7 +109,10 @@ export class UserService {
   generateUserResponse(user: UserEntity): IUserResponse {
     return {
       user: {
-        ...user,
+        email: user.email,
+        username: user.username,
+        bio: user.bio,
+        image: user.image,
         token: this.generateToken(user),
       },
     };
