@@ -1,8 +1,5 @@
+import { ProfileType } from "@/profile/types/profile.type";
+
 export interface IProfileResponse {
-  profile: {
-    username: string;
-    bio: string;
-    image: string;
-    following: boolean;
-  };
+  profile: ProfileType;
 }
