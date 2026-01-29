@@ -3,7 +3,9 @@ import { CommentEntity } from '@/comment/comment.entity';
 import { createCommentDto } from '@/comment/dto/createComment.dto';
 import { CommentType } from '@/comment/types/comment.type';
 import { ICommentResponse } from '@/comment/types/commentResponse.interface';
+import { ICommentsResponse } from '@/comment/types/commentsResponse.interface';
 import { ProfileService } from '@/profile/profile.service';
+import { ProfileType } from '@/profile/types/profile.type';
 import { UserEntity } from '@/user/user.entity';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -47,6 +49,38 @@ export class CommentService {
     return { ...newComment, author: profile };
   }
 
+  async getCommentsFromArticle(currentArticleSlug: string, currentUserId: number): Promise<ICommentsResponse> {
+    const article = await this.articleRepository.findOne({
+      where: {
+        slug: currentArticleSlug
+      },
+      relations: ['comments']
+    });
+
+    if(!article) {
+      throw new HttpException('Article not found', HttpStatus.NOT_FOUND);
+    }
+
+    if(article.comments.length === 0) {
+      return { comments: [] };
+    }
+
+
+    const usernames = [ ...new Set(article.comments.map(comment => comment.author.username)) ];
+    const profiles = await this.profileService.getProfilesByUsernames(currentUserId, usernames);
+
+    const comments: CommentType[] = article.comments.map(comment => ({
+        id: comment.id,
+        body: comment.body,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        author: profiles.get(comment.author.username)!
+      })
+    );
+
+    return { comments: comments };
+  }
+
   async deleteComment(currentUserId: number, commentId: number): Promise<DeleteResult> {
     const comment = await this.commentRepository.findOne({
       where: {
@@ -66,15 +100,12 @@ export class CommentService {
   }
 
   async generateCommentResponse(comment: CommentType, currentUserId: number): Promise<ICommentResponse> {
-    delete comment?.article;
-
     const profile = await this.profileService.getProfile(currentUserId, comment.author.username);
-    const profileRes = this.profileService.generateProfileResponse(profile);
 
     return { 
       comment: {
         ...comment,
-        author: profileRes
+        author: profile
       }
     };
   }
