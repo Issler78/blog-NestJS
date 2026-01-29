@@ -1,3 +1,6 @@
-import { UserType } from '@/user/types/user.type';
-
-export type ProfileType = UserType & { following: boolean };
+export type ProfileType = {
+  username: string;
+  bio: string;
+  image: string;
+  following: boolean;
+};
