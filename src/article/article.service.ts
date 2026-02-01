@@ -9,6 +9,8 @@ import slugify from 'slugify';
 import { UpdateArticleDto } from '@/article/dto/updateArticle.dto';
 import { IArticlesResponse } from '@/article/types/articlesResponse.interface';
 import { FollowEntity } from '@/profile/follow.entity';
+import { ProfileService } from '@/profile/profile.service';
+import { ArticleType } from '@/article/types/article.type';
 
 @Injectable()
 export class ArticleService {
@@ -20,7 +22,9 @@ export class ArticleService {
     private readonly userRepository: Repository<UserEntity>,
 
     @InjectRepository(FollowEntity)
-    private readonly followRepository: Repository<FollowEntity>
+    private readonly followRepository: Repository<FollowEntity>,
+
+    private readonly profileService: ProfileService
   ) {}
 
   async createArticle(user: UserEntity, createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
@@ -157,7 +161,8 @@ export class ArticleService {
       return { ...article, favorited };
     });
 
-    return { articles: articlesWithFavorited, articlesCount };
+    // change to return with fav
+    return await this.generateArticlesResponse(articles, articlesCount, currentUserId);
   }
 
   async getFeed(currentUserId: number, query: any): Promise<IArticlesResponse> {
@@ -191,7 +196,7 @@ export class ArticleService {
       queryBuilder.offset(query.offset);
     }
  
-    return { articles, articlesCount };
+    return await this.generateArticlesResponse(articles, articlesCount, currentUserId);
   }
 
   async addToFavoriteArticle(currentUserId: number, slug: string): Promise<ArticleEntity> {
@@ -258,9 +263,59 @@ export class ArticleService {
     return `${slugify(title, {lower: true})}-${id}`;
   }
 
-  generateArticleResponse(article: ArticleEntity): IArticleResponse {
+  async generateArticleResponse(article: ArticleEntity, currentUserId: number): Promise<IArticleResponse> {
+    const profile = await this.profileService.getProfile(currentUserId, article.author.username);
+
     return {
-      article,
+      article: {
+        slug: article.slug,
+        title: article.title,
+        description: article.description,
+        body: article.body,
+        tagList: article.tagList,
+        created_at: article.created_at,
+        updated_at: article.updated_at,
+        favorites_count: article.favoritesCount,
+        author: {
+          username: profile.username,
+          bio: profile.bio,
+          image: profile.image,
+          following: profile.following
+        }
+      }
+    };
+  }
+
+  async generateArticlesResponse(articles: ArticleEntity[], articlesCount: number, currentUserId: number): Promise<IArticlesResponse> {
+
+    const usernames = new Set<string>(articles.map(article => article.author.username));
+    const profiles = await this.profileService.getProfilesByUsernames(currentUserId, [...usernames])
+
+    let articlesFormatted: ArticleType[] = [];
+    for(const article of articles){
+      const profile = profiles.get(article.author.username);
+
+      articlesFormatted.push({
+        slug: article.slug,
+        title: article.title,
+        description: article.description,
+        body: article.body,
+        tagList: article.tagList,
+        created_at: article.created_at,
+        updated_at: article.updated_at,
+        favorites_count: article.favoritesCount,
+        author: {
+          username: profile?.username!,
+          bio: profile?.bio!,
+          image: profile?.image!,
+          following: profile?.following!
+        }
+      });
+    }
+
+    return { 
+      articles: articlesFormatted,
+      articlesCount: articlesCount
     };
   }
 }

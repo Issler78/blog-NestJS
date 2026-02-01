@@ -7,6 +7,7 @@ import { User } from '@/user/decorators/user.decorator';
 import { AuthGuard } from '@/user/guards/auth.guard';
 import { UserEntity } from '@/user/user.entity';
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { DeleteResult } from 'typeorm';
 
 @Controller('articles')
 export class ArticleController {
@@ -17,7 +18,7 @@ export class ArticleController {
   @UseGuards(AuthGuard)
   async createArticle(@User() user: UserEntity, @Body('article') createArticleDto: CreateArticleDto): Promise<IArticleResponse> {
     const newArticle = await this.articleService.createArticle(user, createArticleDto);
-    return this.articleService.generateArticleResponse(newArticle);
+    return this.articleService.generateArticleResponse(newArticle, user.id);
   }
 
   @Get()
@@ -32,14 +33,14 @@ export class ArticleController {
   }
 
   @Get(':slug')
-  async getArticle(@Param('slug') slug: string): Promise<IArticleResponse> {
+  async getArticle(@Param('slug') slug: string, @User('id') currentUserId: number): Promise<IArticleResponse> {
     const article = await this.articleService.getSingleArticle(slug);
-    return this.articleService.generateArticleResponse(article);
+    return this.articleService.generateArticleResponse(article, currentUserId);
   }
 
   @Delete(':slug')
   @UseGuards(AuthGuard)
-  async deleteArticle(@Param('slug') slug: string, @User('id') currentUserId: number){
+  async deleteArticle(@Param('slug') slug: string, @User('id') currentUserId: number): Promise<DeleteResult> {
     return await this.articleService.deleteArticle(slug, currentUserId);
   }
 
@@ -48,7 +49,7 @@ export class ArticleController {
   async updateArticle(@Param('slug') slug: string, @User('id') currentUserId: number, @Body('article') updateArticleDto: UpdateArticleDto): Promise<IArticleResponse> {
     const updatedArticle = await this.articleService.updateArticle(slug, currentUserId, updateArticleDto);
 
-    return this.articleService.generateArticleResponse(updatedArticle);
+    return this.articleService.generateArticleResponse(updatedArticle, currentUserId);
   } 
 
   @Post(':slug/favorite')
@@ -56,7 +57,7 @@ export class ArticleController {
   async addToFavoriteArticle(@User('id') currentUserId: number, @Param('slug') slug: string): Promise<IArticleResponse> {
     const FavArticle = await this.articleService.addToFavoriteArticle(currentUserId, slug);
 
-    return this.articleService.generateArticleResponse(FavArticle);
+    return this.articleService.generateArticleResponse(FavArticle, currentUserId);
   }
 
   @Delete(':slug/favorite')
@@ -64,6 +65,6 @@ export class ArticleController {
   async removeArticleFromFavorites(@User('id') currentUserId: number, @Param('slug') slug: string): Promise<IArticleResponse> {
     const removedArticle = await this.articleService.removeArticleFromFavorites(currentUserId, slug);
 
-    return this.articleService.generateArticleResponse(removedArticle);
+    return this.articleService.generateArticleResponse(removedArticle, currentUserId);
   }
 }
