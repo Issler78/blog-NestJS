@@ -142,26 +142,7 @@ export class ArticleService {
 
     const articles = await queryBuilder.getMany();
     const articlesCount = await queryBuilder.getCount();
-    let userFavoritesIds: number[] = [];
 
-
-    if (currentUserId){
-      const currentUser = await this.userRepository.findOne({
-        where: {
-          id: currentUserId
-        },
-        relations: ['favorites']
-      });
-
-      userFavoritesIds = currentUser ? currentUser.favorites.map((article) => article.id) : [];
-    }
-
-    const articlesWithFavorited = articles.map((article) => {
-      const favorited = userFavoritesIds.includes(article.id);
-      return { ...article, favorited };
-    });
-
-    // change to return with fav
     return await this.generateArticlesResponse(articles, articlesCount, currentUserId);
   }
 
@@ -266,6 +247,18 @@ export class ArticleService {
   async generateArticleResponse(article: ArticleEntity, currentUserId: number): Promise<IArticleResponse> {
     const profile = await this.profileService.getProfile(currentUserId, article.author.username);
 
+    let userFavoritesIds: number[] = [];
+    if (currentUserId){
+      const currentUser = await this.userRepository.findOne({
+        where: {
+          id: currentUserId
+        },
+        relations: ['favorites']
+      });
+
+      userFavoritesIds = currentUser ? currentUser.favorites.map((article) => article.id) : [];
+    }
+
     return {
       article: {
         slug: article.slug,
@@ -276,6 +269,7 @@ export class ArticleService {
         created_at: article.created_at,
         updated_at: article.updated_at,
         favorites_count: article.favoritesCount,
+        favorited: userFavoritesIds.includes(article.id),
         author: {
           username: profile.username,
           bio: profile.bio,
@@ -289,13 +283,26 @@ export class ArticleService {
   async generateArticlesResponse(articles: ArticleEntity[], articlesCount: number, currentUserId: number): Promise<IArticlesResponse> {
 
     const usernames = new Set<string>(articles.map(article => article.author.username));
-    const profiles = await this.profileService.getProfilesByUsernames(currentUserId, [...usernames])
+    const profiles = await this.profileService.getProfilesByUsernames(currentUserId, [...usernames]);
+
+    let userFavoritesIds: number[] = [];
+    if (currentUserId){
+      const currentUser = await this.userRepository.findOne({
+        where: {
+          id: currentUserId
+        },
+        relations: ['favorites']
+      });
+
+      userFavoritesIds = currentUser ? currentUser.favorites.map((article) => article.id) : [];
+    }
 
     let articlesFormatted: ArticleType[] = [];
-    for(const article of articles){
+
+    articlesFormatted = articles.map((article) => {
       const profile = profiles.get(article.author.username);
 
-      articlesFormatted.push({
+      return {
         slug: article.slug,
         title: article.title,
         description: article.description,
@@ -304,14 +311,17 @@ export class ArticleService {
         created_at: article.created_at,
         updated_at: article.updated_at,
         favorites_count: article.favoritesCount,
+        favorited: userFavoritesIds.includes(article.id),
         author: {
           username: profile?.username!,
           bio: profile?.bio!,
           image: profile?.image!,
           following: profile?.following!
         }
-      });
-    }
+      }
+    })
+
+
 
     return { 
       articles: articlesFormatted,

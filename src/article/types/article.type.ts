@@ -9,5 +9,6 @@ export type ArticleType = {
   created_at: Date;
   updated_at: Date;
   favorites_count: number;
+  favorited: boolean;
   author: ProfileType;
 };
