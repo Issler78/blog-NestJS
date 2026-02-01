@@ -104,8 +104,16 @@ export class CommentService {
 
     return { 
       comment: {
-        ...comment,
-        author: profile
+        id: comment.id,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        body: comment.body,
+        author: {
+          username: profile.username,
+          bio: profile.bio,
+          image: profile.image,
+          following: profile.following
+        }
       }
     };
   }
