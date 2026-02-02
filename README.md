@@ -21,78 +21,190 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+# RealWorld API — NestJS
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Implementação completa da **RealWorld Conduit API** utilizando **NestJS**, baseada na documentação oficial:
 
-## Project setup
+👉 [https://realworld-docs.netlify.app/implementation-creation/introduction/](https://realworld-docs.netlify.app/implementation-creation/introduction/)
+
+Este projeto tem como objetivo **estudos com NestJS**, demonstrando a implementação de uma API REST completa, seguindo boas práticas de arquitetura, organização de código, tipagem forte com TypeScript e uso de ORM.
+
+> 📚 **Observação importante**: este projeto foi desenvolvido com foco educacional. Grande parte da implementação foi realizada acompanhando e adaptando conteúdos de **vídeos do YouTube**, especialmente para compreender decisões arquiteturais, padrões do NestJS e a aplicação correta da documentação da API. Todo o código foi digitado, adaptado e entendido durante o processo, servindo como aprendizado prático.
+
+---
+
+## 🚀 Tecnologias Utilizadas
+
+* **NestJS**
+* **TypeScript**
+* **TypeORM**
+* **PostgreSQL**
+* **JWT** para autenticação
+* **bcrypt** para hash de senhas
+
+---
+
+## 📌 Funcionalidades Implementadas
+
+### 👤 Usuários
+
+* Registro de usuário
+* Login
+* Atualização de dados do usuário autenticado
+* Autenticação via JWT
+
+### 👥 Perfis
+
+* Visualizar perfil de um usuário
+* Seguir usuário
+* Deixar de seguir usuário
+
+### 📝 Artigos
+
+* Criar artigo
+* Atualizar artigo
+* Deletar artigo
+* Listar artigos (com opção de definir limite de artigos listados)
+* Favoritar e desfavoritar artigos
+* Filtrar artigos por:
+
+  * autor
+  * tag
+  * artigos favoritados por usuário
+* Feed personalizado (artigos de usuários seguidos)
+
+### 💬 Comentários
+
+* Adicionar comentário em um artigo
+* Listar comentários de um artigo
+* Deletar comentário
+
+### 🏷️ Tags
+
+* Listar todas as tags disponíveis
+
+---
+
+## 🗂️ Estrutura do Projeto
 
 ```bash
-$ npm install
+src/
+├── article/
+│ ├── dto/
+│ ├── types/
+│ │ ├── article.type.ts
+│ │ ├── articleResponse.interface.ts
+│ │ └── articlesResponse.interface.ts
+│ ├── article.controller.ts
+│ ├── article.entity.ts
+│ ├── article.module.ts
+│ └── article.service.ts
+├── comment/
+├── profile/
+├── tag/
+├── migrations/
+├── types/
+├── user/
+│ ├── decorators/
+│ ├── dto/
+│ ├── guards/
+│ ├── middlewares/
+│ ├── types/
+│ ├── user.controller.ts
+│ ├── user.entity.ts
+│ ├── user.module.ts
+│ └── user.service.ts
+├── app.controller.ts
+├── app.module.ts
+└── app.service.ts
 ```
 
-## Compile and run the project
+---
+
+## 🔐 Autenticação
+
+A autenticação é feita utilizando **JWT**.
+
+* O token deve ser enviado no header:
+
+```http
+Authorization: Token <jwt_token>
+```
+
+Rotas públicas e protegidas seguem exatamente a documentação do RealWorld.
+
+---
+
+## ⚙️ Configuração do Ambiente
+
+### 1️⃣ Clonar o repositório
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/Issler78/blog-NestJS.git
 ```
 
-## Run tests
+### 2️⃣ Instalar dependências
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
+### 3️⃣ Configurar variáveis de ambiente
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Crie um arquivo `.env` na raiz do projeto:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```env
+DB_HOST=
+DB_PORT=
+DB_USERNAME=
+DB_PASSWORD=
+DATABASE=
+
+# SECRET JWT
+JWT_SECRET=
+```
+
+> Ajuste os valores conforme seu ambiente.
+
+---
+
+## ▶️ Executando o Projeto
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# desenvolvimento
+npm run start:dev
+
+# produção
+npm run build
+npm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+A API ficará disponível em:
 
-## Resources
+```
+http://localhost:3000
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 📖 Documentação da API
 
-## Support
+A API segue **100%** o contrato definido pela RealWorld.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Você pode testar utilizando:
 
-## Stay in touch
+* Postman
+* Insomnia
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## 👨‍💻 Autor
+
+**Matheus Issler**
+Projeto desenvolvido com fins educacionais.
+
+---
+
+## Licença
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
